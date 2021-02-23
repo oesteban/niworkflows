@@ -7,7 +7,7 @@ import nibabel as nb
 from nipype.interfaces.base import traits, InputMultiObject, File
 from nipype.utils.filemanip import fname_presuffix
 from nipype.interfaces.ants.resampling import ApplyTransforms, ApplyTransformsInputSpec
-from nipype.interfaces.ants.registration import Registration
+from nipype.interfaces.ants.registration import Registration, RegistrationInputSpec
 from nipype.interfaces.ants.segmentation import (
     N4BiasFieldCorrection as VanillaN4,
     N4BiasFieldCorrectionOutputSpec as VanillaN4OutputSpec,
@@ -49,6 +49,28 @@ class FixHeaderApplyTransforms(ApplyTransforms):
         )
         return runtime
 
+class _FixHeaderRegistrationInputSpec(RegistrationInputSpec):
+    transforms = traits.List(
+        traits.Enum(
+            "Rigid",
+            "Affine",
+            "CompositeAffine",
+            "Similarity",
+            "Translation",
+            "BSpline",
+            "BSplineDisplacementField",
+            "GaussianDisplacementField",
+            "TimeVaryingVelocityField",
+            "TimeVaryingBSplineVelocityField",
+            "SyN",
+            "BSplineSyN",
+            "Exponential",
+            "BSplineExponential",
+        ),
+        argstr="%s",
+        mandatory=True,
+    )
+
 
 class FixHeaderRegistration(Registration):
     """
@@ -56,6 +78,7 @@ class FixHeaderRegistration(Registration):
     fixes the resampled image header to match the xform of the reference
     image
     """
+    input_spec = _FixHeaderRegistrationInputSpec
 
     def _run_interface(self, runtime, correct_return_codes=(0,)):
         # Run normally
